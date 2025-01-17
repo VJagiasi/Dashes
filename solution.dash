@@ -1,0 +1,97 @@
+# ------------------------------------------------------------
+# This Dashes program calculates Fibonacci numbers in a careful, step-by-step way.
+# 
+# Here's how each memory slot is used:
+#   - slot0 starts as F(n), which is initially F(0) = 0.
+#   - slot1 starts as F(n+1), which is initially F(1) = 1.
+#   - slot2 is a helper cell where we store the sum (slot0 + slot1).
+#   - slot3 is our loop counter (we'll run 30 iterations).
+#   - slot4 is a temporary cell used to save the old value of slot1 during each iteration.
+#   - slot5 is another temporary cell used to duplicate slot1 without losing it.
+#
+# Each time the loop runs:
+#   1) We subtract 1 from slot3 (to keep track of how many times we've iterated).
+#   2) We clear slot2.
+#   3) We make a copy of slot1 in slot4 (and also in slot5), then restore slot1 from slot5.
+#   4) We add slot0 into slot2, then add slot1 into slot2.
+#   5) We set slot0 to the old slot1 (from slot4).
+#   6) We move the sum in slot2 over to slot1, so slot1 becomes the new Fibonacci number.
+#
+# After 30 iterations, slot0 and slot1 hold consecutive Fibonacci numbers:
+#   slot0 = F(30), slot1 = F(31).
+# If you only need F(30) in slot1, set slot3 to 29 instead of 30.
+# ------------------------------------------------------------
+
+# 1) Initialize slot1 to 1
+> *           # Move from slot0 to slot1, then set slot1 = 1
+
+# 2) Initialize slot2 to 0
+> *           # Move from slot1 to slot2, set slot2 = 1
+-             # Decrement slot2 back to 0
+
+# 3) Initialize slot3 to 30
+> *           # Move from slot2 to slot3, set slot3 = 1
+++++++++++++++++++++++++++++   # Add 29 more, so slot3 = 30
+
+# Move back to slot0
+<<<
+
+# Move forward 3 times to slot3
+>>>
+
+[               # While slot3 != 0:
+  -             # Decrement slot3 by 1 (loop counter)
+
+  <             # Move to slot2
+  [ - ]         # Clear slot2 by looping until it hits 0
+
+  <             # Move to slot1
+
+  # (A) Copy slot1 into slot4 and slot5, then restore slot1 from slot5
+  [              
+    -           # slot1--
+    > > > > +   # Go right 4 cells to slot5, increment it
+    < +         # Move left 1 cell to slot4, increment it
+    < < <       # Return to slot1
+  ]
+  > > > >       # Go to slot5
+  [ 
+    -           # slot5--
+    < < < < +    # Move left 4 cells to slot1, increment slot1
+    > > > >
+  ]
+
+  # (B) Add slot0 into slot2
+   < < < < <     # Move left 5 steps to slot0
+   [ 
+    -           # slot0--
+    > > +       # Move right 2 steps to slot2, increment slot2
+    < <         # Go back to slot0
+   ]
+
+  # (C) Add slot1 into slot2
+  >             # Move to slot1
+  [ 
+    -           # slot1--
+    > +         # Move to slot2, increment slot2
+    <           # Back to slot1
+  ]
+
+  # (D) Set slot0 to the old slot1 (which was stored in slot4)
+  > > >         # Go to slot4
+  [ 
+    -           # slot4--
+    < < < < +    # Move back 4 cells to slot0, increment slot0
+    > > > >
+  ]
+
+  # (E) Move the sum in slot2 over to slot1
+  < <           # Go back left 2 cells to slot2
+  [ 
+    -           # slot2--
+    < +         # Move left to slot1, increment slot1
+    >           # Return to slot2
+  ]
+  >             # Move right 1 to slot3, so the loop checks slot3 again
+
+]               # End of loop when slot3 = 0
